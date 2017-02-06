@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 def calculateObjectiveFunction(a, X, y, m):
     totalObjectiveFunction = 0;
@@ -24,7 +25,9 @@ def calculateNextEstimate(currentA, X, y, m, n, stepSize):
 def calculateNextStochasticEstimate(currentA, X, y, m, n, stepSize):
     currentA = currentA.copy();
     smallStepSize = stepSize;
-    for i in range(0, m):  # For all datapoints
+    r = list(range(1000))
+    random.shuffle(r)
+    for i in r:  # For all datapoints
         for j in range(0, n): # For all dimensions
             individualError = np.dot(currentA.T, X[i]) - y[i];
             totalDerivative = individualError * X[i][j];
@@ -45,11 +48,9 @@ def calculateStepsStochastic(initialA, X, y, m, n, stepSize, stepsToExecute):
     stepsExecuted = [];
     stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
     currentA = initialA;
-    shuffledY = y.copy();
-    np.random.shuffle(shuffledY);
     for s in range(0, stepsToExecute):
-        currentA = calculateNextStochasticEstimate(currentA, X, shuffledY, m, n, stepSize);
-        newObjValue = calculateObjectiveFunction(currentA, X, shuffledY, m);
+        currentA = calculateNextStochasticEstimate(currentA, X, y, m, n, stepSize);
+        newObjValue = calculateObjectiveFunction(currentA, X, y, m);
         stepsExecuted.append(newObjValue);
     return stepsExecuted;
 
