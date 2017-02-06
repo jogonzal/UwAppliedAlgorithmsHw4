@@ -66,8 +66,8 @@ y = X.dot(a_true) + np.random.normal(0,0.1,size=(m,1))
 closedFormA = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)), X.T), y);
 closedFormAObjectiveValue = calculateObjectiveFunction(closedFormA, X, y, m);
 
-print "Found value of closedFormA " + str(closedFormA)
-print "Error with that a is " + str(closedFormAObjectiveValue);
+print "1.A: Found value of closedFormA " + str(closedFormA)
+print "1.A: Error with that a is " + str(closedFormAObjectiveValue);
 
 stepSizes = [0.0001, 0.001, 0.00125];
 stepsToExecute = 20;
@@ -75,13 +75,13 @@ stepsToExecute = 20;
 ## 1.B
 initialA = np.zeros((n, 1));
 stepsExecuted = [];
-#for stepSize in stepSizes:
-#    stepsExecuted.append([stepSize, calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute)]);
-print str(stepsExecuted);
+for stepSize in stepSizes:
+    stepsExecuted.append([stepSize, calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute)]);
+print "1.B The performances obtained for GD is " + str(stepsExecuted);
 
 ## 1.C
 initialA = np.zeros((n, 1));
 stepsExecuted = [];
 for stepSize in stepSizes:
     stepsExecuted.append([stepSize, calculateStepsStochastic(initialA, X, y, m, n, stepSize, stepsToExecute)]);
-print str(stepsExecuted);
+print "1.C The performance obtained for SGD is " + str(stepsExecuted);
