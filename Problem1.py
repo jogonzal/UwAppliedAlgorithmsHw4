@@ -1,13 +1,35 @@
 import numpy as np
-from numpy.linalg import inv
 
-def calculateObjectiveFunction(a, X, y):
+def calculateObjectiveFunction(a, X, y, m):
     totalObjectiveFunction = 0;
     for i in range(0, m):  # For all datapoints
         individualObjectiveFunction = np.dot(a.T, X[i]) - y[i];
         individualObjectiveFunction = 0.5 * individualObjectiveFunction * individualObjectiveFunction;
         totalObjectiveFunction += individualObjectiveFunction;
-    return totalObjectiveFunction;
+    return totalObjectiveFunction[0];
+
+def calculatePartialDerivative(currentA, X, y, m, j):
+    totalDerivative = 0;
+    for i in range(0, m):  # For all datapoints
+        individualError = np.dot(currentA.T, X[i]) - y[i];
+        totalDerivative += individualError * X[i][j];
+    return totalDerivative;
+
+def calculateNextEstimate(currentA, X, y, m, n, stepSize):
+    nextA = np.zeros((n, 1));
+    for j in range(0, n):
+        nextA[j] = currentA[j] - stepSize * calculatePartialDerivative(currentA, X, y, m, j);
+    return nextA;
+
+def calculateSteps(initialA, X, y, m, n, stepSize):
+    stepsExecuted = [];
+    stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
+    currentA = initialA;
+    for s in range(0, stepsToExecute):
+        currentA = calculateNextEstimate(currentA, X, y, m, n, stepSize);
+        newObjValue = calculateObjectiveFunction(currentA, X, y, m);
+        stepsExecuted.append(newObjValue);
+    return stepsExecuted;
 
 n = 100 # dimensions of data
 m = 1000 # number of data points
@@ -18,11 +40,17 @@ y = X.dot(a_true) + np.random.normal(0,0.1,size=(m,1))
 ## 1.A
 
 # Calculate the most optimal a
-closedFormA = np.dot(np.dot(inv(np.dot(X.T, X)), X.T), y);
-closedFormAObjectiveValue = calculateObjectiveFunction(closedFormA, X, y);
+closedFormA = np.dot(np.dot(np.inv(np.dot(X.T, X)), X.T), y);
+closedFormAObjectiveValue = calculateObjectiveFunction(closedFormA, X, y, m);
 
 print "Found value of closedFormA " + str(closedFormA)
 print "Error with that a is " + str(closedFormAObjectiveValue);
 
 ## 1.B
-
+stepSizes = [0.0001, 0.001, 0.00125];
+stepsToExecute = 20;
+initialA = np.zeros((n, 1));
+stepsExecuted = [];
+for stepSize in stepSizes:
+    stepsExecuted.append([stepSize, calculateSteps(initialA, X, y, m, n, stepSize)]);
+print str(stepsExecuted);
