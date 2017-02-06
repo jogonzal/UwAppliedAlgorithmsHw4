@@ -13,17 +13,22 @@ def calculateObjectiveFunction(a, X, y, m, lambdaValue):
         return totalObjectiveFunction[0] + totalLambdaContribution;
     return totalObjectiveFunction[0];
 
-def calculatePartialDerivative(currentA, X, y, m, j):
+def calculatePartialDerivative(currentA, X, y, m, j, lambdaValue):
     totalDerivative = 0;
     for i in range(0, m):  # For all datapoints
         individualError = np.dot(currentA.T, X[i]) - y[i];
         totalDerivative += individualError * X[i][j];
+    # TODO: Very unsure whether this goes here...
+    if (lambdaValue > 0):
+        moduloOfMatrix = np.linalg.norm(currentA);
+        totalLambdaContribution = 2 * lambdaValue  * moduloOfMatrix;
+        return totalDerivative + totalLambdaContribution;
     return totalDerivative;
 
-def calculateNextEstimate(currentA, X, y, m, n, stepSize):
+def calculateNextEstimate(currentA, X, y, m, n, stepSize, lambdaValue):
     nextA = np.zeros((n, 1));
     for j in range(0, n):
-        nextA[j] = currentA[j] - stepSize * calculatePartialDerivative(currentA, X, y, m, j);
+        nextA[j] = currentA[j] - stepSize * calculatePartialDerivative(currentA, X, y, m, j, lambdaValue);
     return nextA;
 
 def calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute, lambdaValue):
@@ -31,7 +36,7 @@ def calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute, lambdaValue):
     stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m, lambdaValue));
     currentA = initialA;
     for s in range(0, stepsToExecute):
-        currentA = calculateNextEstimate(currentA, X, y, m, n, stepSize);
+        currentA = calculateNextEstimate(currentA, X, y, m, n, stepSize, lambdaValue);
         newObjValue = calculateObjectiveFunction(currentA, X, y, m, lambdaValue);
         stepsExecuted.append(newObjValue);
     return [currentA, stepsExecuted];
