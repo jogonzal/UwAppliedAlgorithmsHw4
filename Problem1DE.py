@@ -20,8 +20,8 @@ def calculatePartialDerivative(currentA, X, y, m, j, lambdaValue):
         totalDerivative += individualError * X[i][j];
     # TODO: Very unsure whether this goes here...
     if (lambdaValue > 0):
-        moduloOfMatrix = np.linalg.norm(currentA);
-        totalLambdaContribution = 2 * lambdaValue  * moduloOfMatrix;
+        currentAContribution = currentA[j];
+        totalLambdaContribution = 2 * lambdaValue  * currentAContribution;
         return totalDerivative + totalLambdaContribution;
     return totalDerivative;
 
@@ -78,8 +78,8 @@ train_m = 100; # Back to normal
 lambdaValueResults = [];
 for lambdaValue in lambdaValues:
     lambdaValueResults = calculateSteps(initialA, X_train, y_train, train_m, n, stepSize, stepsToExecute, lambdaValue);
-    lambdaValuePerfOnTrain = calculateObjectiveFunction(lambdaValueResults[0], X_train, y_train, train_m, lambdaValue);
-    lambdaValuePerfOnTest = calculateObjectiveFunction(lambdaValueResults[0], X_test, y_test, test_m, lambdaValue);
+    lambdaValuePerfOnTrain = calculateObjectiveFunction(lambdaValueResults[0], X_train, y_train, train_m, 0);
+    lambdaValuePerfOnTest = calculateObjectiveFunction(lambdaValueResults[0], X_test, y_test, test_m, 0);
     print "1.E: Ran with lambda " + str(lambdaValue) + " and samples " + str(train_m) + " and scored " + str(lambdaValuePerfOnTrain) + " on train and " + str(lambdaValuePerfOnTest) + " on test ";
     lambdaValueResults.append([lambdaValue, lambdaValuePerfOnTrain, lambdaValuePerfOnTrain]);
 
