@@ -17,12 +17,13 @@ def calculatePartialDerivative(currentA, X, y, m, j, lambdaValue):
     totalDerivative = 0;
     for i in range(0, m):  # For all datapoints
         individualError = np.dot(currentA.T, X[i]) - y[i];
+        # TODO: Very unsure whether this goes here...
+        if (lambdaValue > 0):
+            currentAContribution = currentA[j];
+            totalLambdaContribution = 2 * lambdaValue  * currentAContribution;
+            individualError += totalLambdaContribution;
         totalDerivative += individualError * X[i][j];
-    # TODO: Very unsure whether this goes here...
-    if (lambdaValue > 0):
-        currentAContribution = currentA[j];
-        totalLambdaContribution = 2 * lambdaValue  * currentAContribution;
-        return totalDerivative + totalLambdaContribution;
+
     return totalDerivative;
 
 def calculateNextEstimate(currentA, X, y, m, n, stepSize, lambdaValue):
