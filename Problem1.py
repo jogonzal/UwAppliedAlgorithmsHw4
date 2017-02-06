@@ -21,13 +21,35 @@ def calculateNextEstimate(currentA, X, y, m, n, stepSize):
         nextA[j] = currentA[j] - stepSize * calculatePartialDerivative(currentA, X, y, m, j);
     return nextA;
 
-def calculateSteps(initialA, X, y, m, n, stepSize):
+def calculateNextStochasticEstimate(currentA, X, y, m, n, stepSize):
+    currentA = currentA.copy();
+    smallStepSize = stepSize;
+    for i in range(0, m):  # For all datapoints
+        for j in range(0, n): # For all dimensions
+            individualError = np.dot(currentA.T, X[i]) - y[i];
+            totalDerivative = individualError * X[i][j];
+            currentA[j] -= smallStepSize * totalDerivative;
+    return currentA;
+
+def calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute):
     stepsExecuted = [];
     stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
     currentA = initialA;
     for s in range(0, stepsToExecute):
         currentA = calculateNextEstimate(currentA, X, y, m, n, stepSize);
         newObjValue = calculateObjectiveFunction(currentA, X, y, m);
+        stepsExecuted.append(newObjValue);
+    return stepsExecuted;
+
+def calculateStepsStochastic(initialA, X, y, m, n, stepSize, stepsToExecute):
+    stepsExecuted = [];
+    stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
+    currentA = initialA;
+    shuffledY = y.copy();
+    np.random.shuffle(shuffledY);
+    for s in range(0, stepsToExecute):
+        currentA = calculateNextStochasticEstimate(currentA, X, shuffledY, m, n, stepSize);
+        newObjValue = calculateObjectiveFunction(currentA, X, shuffledY, m);
         stepsExecuted.append(newObjValue);
     return stepsExecuted;
 
@@ -46,13 +68,19 @@ closedFormAObjectiveValue = calculateObjectiveFunction(closedFormA, X, y, m);
 print "Found value of closedFormA " + str(closedFormA)
 print "Error with that a is " + str(closedFormAObjectiveValue);
 
-## 1.B
 stepSizes = [0.0001, 0.001, 0.00125];
 stepsToExecute = 20;
+
+## 1.B
 initialA = np.zeros((n, 1));
 stepsExecuted = [];
-for stepSize in stepSizes:
-    stepsExecuted.append([stepSize, calculateSteps(initialA, X, y, m, n, stepSize)]);
+#for stepSize in stepSizes:
+#    stepsExecuted.append([stepSize, calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute)]);
 print str(stepsExecuted);
 
 ## 1.C
+initialA = np.zeros((n, 1));
+stepsExecuted = [];
+for stepSize in stepSizes:
+    stepsExecuted.append([stepSize, calculateStepsStochastic(initialA, X, y, m, n, stepSize, stepsToExecute)]);
+print str(stepsExecuted);
