@@ -40,7 +40,7 @@ y = X.dot(a_true) + np.random.normal(0,0.1,size=(m,1))
 ## 1.A
 
 # Calculate the most optimal a
-closedFormA = np.dot(np.dot(np.inv(np.dot(X.T, X)), X.T), y);
+closedFormA = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)), X.T), y);
 closedFormAObjectiveValue = calculateObjectiveFunction(closedFormA, X, y, m);
 
 print "Found value of closedFormA " + str(closedFormA)
@@ -54,3 +54,5 @@ stepsExecuted = [];
 for stepSize in stepSizes:
     stepsExecuted.append([stepSize, calculateSteps(initialA, X, y, m, n, stepSize)]);
 print str(stepsExecuted);
+
+## 1.C
