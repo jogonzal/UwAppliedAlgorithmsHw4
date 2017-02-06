@@ -3,6 +3,8 @@
 #
 # This python implementation was written by Okke Schrijvers
 
+
+
 import sys
 import math
 import numpy as np
@@ -11,10 +13,9 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 import copy
 import random
-import numpy as np
-import random
 
 data = []
+
 
 # plan is an array of 40 floating point numbers
 def sim(plan):
@@ -181,144 +182,9 @@ def sim(plan):
 # function and minimize it.
 ###########
 
-def calculateObjectiveFunction(a, X, y, m):
-    totalObjectiveFunction = 0;
-    for i in range(0, m):  # For all datapoints
-        individualObjectiveFunction = np.dot(a.T, X[i]) - y[i];
-        individualObjectiveFunction = 0.5 * individualObjectiveFunction * individualObjectiveFunction;
-        totalObjectiveFunction += individualObjectiveFunction;
-    return totalObjectiveFunction[0];
+plan = [random.uniform(-1, 1) for i in range(40)]
 
-def calculatePartialDerivative(currentA, X, y, m, j):
-    totalDerivative = 0;
-    for i in range(0, m):  # For all datapoints
-        individualError = np.dot(currentA.T, X[i]) - y[i];
-        totalDerivative += individualError * X[i][j];
-    return totalDerivative;
-
-def calculateNextEstimate(currentA, X, y, m, n, stepSize):
-    nextA = np.zeros((n, 1));
-    for j in range(0, n):
-        nextA[j] = currentA[j] - stepSize * calculatePartialDerivative(currentA, X, y, m, j);
-    return nextA;
-
-def calculateNextStochasticEstimate(currentA, X, y, m, n, stepSize):
-    currentA = currentA.copy();
-    smallStepSize = stepSize;
-    r = list(range(1000))
-    random.shuffle(r)
-    for i in r:  # For all datapoints
-        for j in range(0, n): # For all dimensions
-            individualError = np.dot(currentA.T, X[i]) - y[i];
-            totalDerivative = individualError * X[i][j];
-            currentA[j] -= smallStepSize * totalDerivative;
-    return currentA;
-
-def calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute):
-    stepsExecuted = [];
-    stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
-    currentA = initialA;
-    for s in range(0, stepsToExecute):
-        currentA = calculateNextEstimate(currentA, X, y, m, n, stepSize);
-        newObjValue = calculateObjectiveFunction(currentA, X, y, m);
-        stepsExecuted.append(newObjValue);
-    return stepsExecuted;
-
-def calculateStepsStochastic(initialA, X, y, m, n, stepSize, stepsToExecute):
-    stepsExecuted = [];
-    stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
-    currentA = initialA;
-    for s in range(0, stepsToExecute):
-        currentA = calculateNextStochasticEstimate(currentA, X, y, m, n, stepSize);
-        newObjValue = calculateObjectiveFunction(currentA, X, y, m);
-        stepsExecuted.append(newObjValue);
-    return stepsExecuted;
-
-def getNewVectorWithStochasticOptimizations(currentPlan, stepSize, r):
-    stepsExecuted = [];
-    currentPlan = list(currentPlan);
-    currentDistance = sim(currentPlan);
-    stepsExecuted.append(currentDistance);
-    random.shuffle(r)
-    for s in r:
-        originalPlan = currentPlan[s];
-        bestPlan = originalPlan;
-        diffToApply = stepSize;
-        currentPlan[s] = originalPlan + diffToApply;
-        newDistanceRight = sim(currentPlan);
-        maxIterations = 2;
-        iteration = 0;
-        while (newDistanceRight > currentDistance and iteration < maxIterations):
-            iteration += 1;
-            currentDistance = newDistanceRight;
-            bestPlan = currentPlan[s];
-            diffToApply = diffToApply * 1.5;
-            currentPlan[s] = originalPlan + diffToApply;
-            newDistanceRight = sim(currentPlan);
-        currentPlan[s] = bestPlan;
-    return [currentPlan, currentDistance];
-
-def generateNewPlanNonStochastic(currentPlan, stepSize):
-    newPlan = list(currentPlan);
-    currentDistance = sim(currentPlan);
-    currentPlan = list(currentPlan);
-    for s in range(0, 40):
-        diffToApply = random.uniform(-1, 1) * stepSize;
-        originalPlan = currentPlan[s];
-        currentPlan[s] = originalPlan + diffToApply;
-        newDistanceRight = sim(currentPlan);
-        currentPlan[s] = originalPlan;
-        derivative = (newDistanceRight - currentDistance) / diffToApply;
-        newPlan[s] = originalPlan - derivative * diffToApply;
-    return newPlan;
-
-# The goal is to optimize plan
-# Initialize plan to be a random uniform between -1 and 1
-initialPlan = [random.uniform(-1, 1) for i in range(40)]
-initialDistance = sim(initialPlan);
-initialStepSize = 0.001;
-iterationsStaleLimit = 7;
-staleLimit = 0.001;
-
-r = list(range(40))
-subsequentPlan = initialPlan;
-lastDistance = sim(initialPlan);
-iterationsStale = 0;
-stepSize = initialStepSize;
-maxDistance = 0;
-maxPlan = 0;
-for i in range(0, 10000):
-    subsequentResult = getNewVectorWithStochasticOptimizations(subsequentPlan, stepSize, r);
-    subsequentPlan = subsequentResult[0];
-    subsequentDistance = subsequentResult[1];
-
-    # Capture the max + step size variation
-    if (subsequentDistance > maxDistance):
-        maxPlan = subsequentPlan;
-        maxDistance = subsequentDistance;
-
-    # identify staleness + step size variation
-    if ((subsequentDistance - lastDistance) < staleLimit):
-        iterationsStale += 1;
-        stepSize /= 1.5;
-    else:
-        iterationsStale = 0;
-        stepSize *= 1.5;
-
-    # step size sanity
-    if (stepSize > 0.08 or stepSize < 0.00001):
-        stepSize = initialStepSize;
-
-    #print "Current plan is " + str(subsequentPlan);
-    print "2. On iteration " + str(i) + " we have distance " + str(subsequentDistance) + " (max was " + str(maxDistance) + ")";
-
-    # on stale, shuffle
-    if (iterationsStale >= iterationsStaleLimit):
-        print "Shuffling a little bit... ";
-        iterationsStale = 0;
-        subsequentPlan = generateNewPlanNonStochastic(subsequentPlan, 0.001);
-    lastDistance = subsequentDistance;
-plan = subsequentPlan;
+sim(plan)
 
 # draw the simulation
 fig = plt.figure()
