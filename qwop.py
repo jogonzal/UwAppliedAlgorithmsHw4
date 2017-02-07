@@ -168,7 +168,8 @@ def sim(plan):
                 p[0][z] += v[0][z] * dt
                 p[1][z] += v[1][z] * dt;
 
-            data.append(copy.deepcopy(p))
+            # Bring back later
+            # data.append(copy.deepcopy(p))
 
             if contact[0] or contact[5]:
                 return p[0][5]
@@ -243,7 +244,7 @@ def getNewVectorWithStochasticOptimizations(currentPlan, stepSize, r):
     for s in r:
         originalPlan = currentPlan[s];
         bestPlan = originalPlan;
-        diffToApply = stepSize;
+        diffToApply = random.uniform(-1, 1) * stepSize;
         currentPlan[s] = originalPlan + diffToApply;
         newDistanceRight = sim(currentPlan);
         maxIterations = 2;
@@ -268,26 +269,43 @@ def generateNewPlanNonStochastic(currentPlan, stepSize):
         currentPlan[s] = originalPlan + diffToApply;
         newDistanceRight = sim(currentPlan);
         currentPlan[s] = originalPlan;
-        derivative = (newDistanceRight - currentDistance) / diffToApply;
-        newPlan[s] = originalPlan - derivative * diffToApply;
+        if (newDistanceRight > currentDistance):
+            newPlan[s] = originalPlan + diffToApply;
+        else:
+            newPlan[s] = originalPlan - diffToApply;
+
     return newPlan;
 
 # The goal is to optimize plan
 # Initialize plan to be a random uniform between -1 and 1
 initialPlan = [random.uniform(-1, 1) for i in range(40)]
-initialDistance = sim(initialPlan);
-initialStepSize = 0.001;
+
 iterationsStaleLimit = 7;
-staleLimit = 0.001;
+staleLimit = 0.0001;
+
+stochasticStepSize = 0.005;
+nonStochasticStepSize = 0.001;
+stochasticMultiplier = 1.2;
+unstuckMeStepSize = 0.001;
+
+limitIterations = 4000000;
 
 r = list(range(40))
 subsequentPlan = initialPlan;
 lastDistance = sim(initialPlan);
 iterationsStale = 0;
-stepSize = initialStepSize;
+stepSize = stochasticStepSize;
 maxDistance = 0;
 maxPlan = 0;
-for i in range(0, 10000):
+
+print "Limit iterations " + str(limitIterations)
+print "Stochastic step size " + str(stochasticStepSize);
+print "nonStochasticStepSize " + str(nonStochasticStepSize);
+print "Stochastic multiplier " + str(stochasticMultiplier);
+print "unstuckMeStepSize " + str(unstuckMeStepSize);
+print "iterationsStaleLimit " + str(iterationsStaleLimit);
+
+for i in range(0, limitIterations):
     subsequentResult = getNewVectorWithStochasticOptimizations(subsequentPlan, stepSize, r);
     subsequentPlan = subsequentResult[0];
     subsequentDistance = subsequentResult[1];
@@ -296,27 +314,32 @@ for i in range(0, 10000):
     if (subsequentDistance > maxDistance):
         maxPlan = subsequentPlan;
         maxDistance = subsequentDistance;
+        f = open("maximumDistance" + str(round(maxDistance, 2)) + ".result", 'w')
+        f.write(str(maxPlan))  # python will convert \n to os.linesep
+        f.close()  # you can omit in most cases as the destructor will call it
 
     # identify staleness + step size variation
     if ((subsequentDistance - lastDistance) < staleLimit):
         iterationsStale += 1;
-        stepSize /= 1.5;
+        stepSize /= stochasticMultiplier;
     else:
         iterationsStale = 0;
-        stepSize *= 1.5;
+        stepSize *= stochasticMultiplier;
 
     # step size sanity
-    if (stepSize > 0.08 or stepSize < 0.00001):
-        stepSize = initialStepSize;
+    if (stepSize > 0.08 or stepSize < 0.0005):
+        stepSize = stochasticStepSize;
 
     #print "Current plan is " + str(subsequentPlan);
-    print "2. On iteration " + str(i) + " we have distance " + str(subsequentDistance) + " (max was " + str(maxDistance) + ")";
+    print "2. On iteration " + str(i) + " we have distance " + str(subsequentDistance) + " (max was " + str(maxDistance) + ") (stochastic step: " + str(stepSize) + ")";
+
+    subsequentPlan = generateNewPlanNonStochastic(subsequentPlan, nonStochasticStepSize);
 
     # on stale, shuffle
     if (iterationsStale >= iterationsStaleLimit):
         print "Shuffling a little bit... ";
         iterationsStale = 0;
-        subsequentPlan = generateNewPlanNonStochastic(subsequentPlan, 0.001);
+        subsequentPlan = generateNewPlanNonStochastic(subsequentPlan, unstuckMeStepSize);
     lastDistance = subsequentDistance;
 plan = subsequentPlan;
 
