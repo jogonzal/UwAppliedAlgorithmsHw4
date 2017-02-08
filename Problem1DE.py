@@ -1,16 +1,12 @@
 import numpy as np
 import random
 
-def calculateObjectiveFunction(a, X, y, m, lambdaValue):
+def calculateObjectiveFunction(a, X, y, m):
     totalObjectiveFunction = 0;
     for i in range(0, m):  # For all datapoints
         individualObjectiveFunction = np.dot(a.T, X[i]) - y[i];
         individualObjectiveFunction = 0.5 * individualObjectiveFunction * individualObjectiveFunction;
         totalObjectiveFunction += individualObjectiveFunction;
-    if (lambdaValue > 0):
-        moduloOfMatrix = np.linalg.norm(a);
-        totalLambdaContribution = lambdaValue * moduloOfMatrix * moduloOfMatrix;
-        return totalObjectiveFunction[0] + totalLambdaContribution;
     return totalObjectiveFunction[0];
 
 def calculatePartialDerivative(currentA, X, y, m, j, lambdaValue):
@@ -34,11 +30,11 @@ def calculateNextEstimate(currentA, X, y, m, n, stepSize, lambdaValue):
 
 def calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute, lambdaValue):
     stepsExecuted = [];
-    stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m, lambdaValue));
+    stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
     currentA = initialA;
     for s in range(0, stepsToExecute):
         currentA = calculateNextEstimate(currentA, X, y, m, n, stepSize, lambdaValue);
-        newObjValue = calculateObjectiveFunction(currentA, X, y, m, lambdaValue);
+        newObjValue = calculateObjectiveFunction(currentA, X, y, m);
         stepsExecuted.append(newObjValue);
     return [currentA, stepsExecuted];
 
@@ -60,18 +56,18 @@ stepSize = 0.0001;
 
 # check performance against train data with 100
 stepsExecuted = calculateSteps(initialA, X_train, y_train, train_m, n, stepSize, stepsToExecute, 0);
-performanceAgainstTrainData = calculateObjectiveFunction(stepsExecuted[0], X_train, y_train, train_m, 0);
-print "1.D Performance against training data with " + str(train_m) + " samples is " + str(performanceAgainstTrainData);
-performanceAgainstRealData = calculateObjectiveFunction(stepsExecuted[0], X_test, y_test, test_m, 0);
-print "1.D Performance against test data with " + str(train_m) + " samples is " + str(performanceAgainstRealData);
+performanceAgainstTrainData = calculateObjectiveFunction(stepsExecuted[0], X_train, y_train, train_m);
+print "1.D Objective function against training data with " + str(train_m) + " samples is " + str(performanceAgainstTrainData);
+performanceAgainstRealData = calculateObjectiveFunction(stepsExecuted[0], X_test, y_test, test_m);
+print "1.D Objective function against test data with " + str(train_m) + " samples is " + str(performanceAgainstRealData);
 
 # check performance against train data with 20
 train_m = 20;
 stepsExecuted = calculateSteps(initialA, X_train, y_train, train_m, n, stepSize, stepsToExecute, 0);
-performanceAgainstTrainData = calculateObjectiveFunction(stepsExecuted[0], X_train, y_train, train_m, 0);
-print "1.D Performance against training data with " + str(train_m) + " samples is " + str(performanceAgainstTrainData);
-performanceAgainstRealData = calculateObjectiveFunction(stepsExecuted[0], X_test, y_test, test_m, 0);
-print "1.D Performance against test data with " + str(train_m) + " samples is " + str(performanceAgainstRealData);
+performanceAgainstTrainData = calculateObjectiveFunction(stepsExecuted[0], X_train, y_train, train_m);
+print "1.D Objective function against training data with " + str(train_m) + " samples is " + str(performanceAgainstTrainData);
+performanceAgainstRealData = calculateObjectiveFunction(stepsExecuted[0], X_test, y_test, test_m);
+print "1.D Objective function against test data with " + str(train_m) + " samples is " + str(performanceAgainstRealData);
 
 ## 1.E
 lambdaValues = [100, 10, 1, 0.1, 0.01, 0.001];
@@ -79,8 +75,8 @@ train_m = 100; # Back to normal
 lambdaValueResults = [];
 for lambdaValue in lambdaValues:
     lambdaValueResults = calculateSteps(initialA, X_train, y_train, train_m, n, stepSize, stepsToExecute, lambdaValue);
-    lambdaValuePerfOnTrain = calculateObjectiveFunction(lambdaValueResults[0], X_train, y_train, train_m, 0);
-    lambdaValuePerfOnTest = calculateObjectiveFunction(lambdaValueResults[0], X_test, y_test, test_m, 0);
-    print "1.E: Ran with lambda " + str(lambdaValue) + " and samples " + str(train_m) + " and scored " + str(lambdaValuePerfOnTrain) + " on train and " + str(lambdaValuePerfOnTest) + " on test ";
+    lambdaValuePerfOnTrain = calculateObjectiveFunction(lambdaValueResults[0], X_train, y_train, train_m,);
+    lambdaValuePerfOnTest = calculateObjectiveFunction(lambdaValueResults[0], X_test, y_test, test_m);
+    print "1.E: Ran with lambda " + str(lambdaValue) + " and samples " + str(train_m) + " and got Objective function " + str(lambdaValuePerfOnTrain) + " on train and " + str(lambdaValuePerfOnTest) + " on test ";
     lambdaValueResults.append([lambdaValue, lambdaValuePerfOnTrain, lambdaValuePerfOnTrain]);
 
