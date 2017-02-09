@@ -182,59 +182,6 @@ def sim(plan):
 # function and minimize it.
 ###########
 
-def calculateObjectiveFunction(a, X, y, m):
-    totalObjectiveFunction = 0;
-    for i in range(0, m):  # For all datapoints
-        individualObjectiveFunction = np.dot(a.T, X[i]) - y[i];
-        individualObjectiveFunction = 0.5 * individualObjectiveFunction * individualObjectiveFunction;
-        totalObjectiveFunction += individualObjectiveFunction;
-    return totalObjectiveFunction[0];
-
-def calculatePartialDerivative(currentA, X, y, m, j):
-    totalDerivative = 0;
-    for i in range(0, m):  # For all datapoints
-        individualError = np.dot(currentA.T, X[i]) - y[i];
-        totalDerivative += individualError * X[i][j];
-    return totalDerivative;
-
-def calculateNextEstimate(currentA, X, y, m, n, stepSize):
-    nextA = np.zeros((n, 1));
-    for j in range(0, n):
-        nextA[j] = currentA[j] - stepSize * calculatePartialDerivative(currentA, X, y, m, j);
-    return nextA;
-
-def calculateNextStochasticEstimate(currentA, X, y, m, n, stepSize):
-    currentA = currentA.copy();
-    smallStepSize = stepSize;
-    r = list(range(1000))
-    random.shuffle(r)
-    for i in r:  # For all datapoints
-        for j in range(0, n): # For all dimensions
-            individualError = np.dot(currentA.T, X[i]) - y[i];
-            totalDerivative = individualError * X[i][j];
-            currentA[j] -= smallStepSize * totalDerivative;
-    return currentA;
-
-def calculateSteps(initialA, X, y, m, n, stepSize, stepsToExecute):
-    stepsExecuted = [];
-    stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
-    currentA = initialA;
-    for s in range(0, stepsToExecute):
-        currentA = calculateNextEstimate(currentA, X, y, m, n, stepSize);
-        newObjValue = calculateObjectiveFunction(currentA, X, y, m);
-        stepsExecuted.append(newObjValue);
-    return stepsExecuted;
-
-def calculateStepsStochastic(initialA, X, y, m, n, stepSize, stepsToExecute):
-    stepsExecuted = [];
-    stepsExecuted.append(calculateObjectiveFunction(initialA, X, y, m));
-    currentA = initialA;
-    for s in range(0, stepsToExecute):
-        currentA = calculateNextStochasticEstimate(currentA, X, y, m, n, stepSize);
-        newObjValue = calculateObjectiveFunction(currentA, X, y, m);
-        stepsExecuted.append(newObjValue);
-    return stepsExecuted;
-
 def getNewVectorWithStochasticOptimizations(currentPlan, stepSize, r):
     stepsExecuted = [];
     currentPlan = list(currentPlan);
